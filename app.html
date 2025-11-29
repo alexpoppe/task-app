@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Quick Task</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 30px;
+            padding: 40px 30px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+        
+        .mic-button {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .mic-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+        }
+        
+        .mic-button:active {
+            transform: scale(0.95);
+        }
+        
+        .mic-button.listening {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            animation: pulse 1.5s infinite;
+        }
+        
+        .mic-button svg {
+            width: 50px;
+            height: 50px;
+            fill: white;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { 
+                transform: scale(1);
+                box-shadow: 0 10px 30px rgba(231, 76, 60, 0.4);
+            }
+            50% { 
+                transform: scale(1.05);
+                box-shadow: 0 15px 40px rgba(231, 76, 60, 0.6);
+            }
+        }
+        
+        .input-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .transcript {
+            width: 100%;
+            min-height: 100px;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 15px;
+            font-size: 18px;
+            color: #2d3748;
+            line-height: 1.6;
+            border: 2px solid #e2e8f0;
+            resize: vertical;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        
+        .transcript:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .transcript::placeholder {
+            color: #a0aec0;
+            font-style: italic;
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            animation: slideIn 0.3s;
+            font-weight: 500;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .status.success {
+            background: #c6f6d5;
+            color: #22543d;
+            display: block;
+        }
+        
+        .status.error {
+            background: #fed7d7;
+            color: #742a2a;
+            display: block;
+        }
+        
+        .status.info {
+            background: #bee3f8;
+            color: #2c5282;
+            display: block;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-submit {
+            background: #48bb78;
+            color: white;
+        }
+        
+        .btn-submit:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+        }
+        
+        .btn-submit:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-clear {
+            background: #edf2f7;
+            color: #4a5568;
+        }
+        
+        .btn-clear:hover {
+            background: #e2e8f0;
+        }
+        
+        .divider {
+            height: 1px;
+            background: #e2e8f0;
+            margin: 30px 0;
+        }
+        
+        .replan-section {
+            margin-top: 30px;
+        }
+        
+        .btn-replan {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 25px rgba(245, 87, 108, 0.3);
+        }
+        
+        .btn-replan:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(245, 87, 108, 0.4);
+        }
+        
+        .btn-replan:active {
+            transform: translateY(0);
+        }
+        
+        .btn-replan:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .replan-info {
+            margin-top: 15px;
+            padding: 15px;
+            background: #fef5e7;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #744210;
+            text-align: left;
+        }
+        
+        .instruction {
+            margin-top: 30px;
+            padding: 20px;
+            background: #edf2f7;
+            border-radius: 12px;
+            font-size: 14px;
+            color: #4a5568;
+            text-align: left;
+        }
+        
+        .instruction strong {
+            color: #2d3748;
+            display: block;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Quick Task</h1>
+        <p class="subtitle">Voice or text - AI does the rest</p>
+        
+        <button class="mic-button" id="micBtn">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+            </svg>
+        </button>
+        
+        <div class="input-container">
+            <textarea 
+                id="transcript" 
+                class="transcript" 
+                placeholder="Tap mic to record or type your task(s) here...
+                
+Examples:
+• Team meeting tomorrow at 2pm
+• Buy groceries, pick up dry cleaning
+• Call John and review proposal by Friday"
+            ></textarea>
+        </div>
+        
+        <div id="status" class="status"></div>
+        
+        <div class="action-buttons">
+            <button class="btn btn-clear" id="clearBtn">Clear</button>
+            <button class="btn btn-submit" id="submitBtn">Add Task</button>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="replan-section">
+            <button class="btn-replan" id="replanBtn">
+                🔄 Replan My Week
+            </button>
+            <div class="replan-info">
+                <strong>💡 When to replan:</strong>
+                • Added urgent tasks<br>
+                • Priorities changed<br>
+                • Want to optimize remaining week<br>
+                • Completed/cancelled tasks
+            </div>
+        </div>
+        
+        <div class="instruction">
+            <strong>💡 How to use:</strong>
+            <strong>Add Tasks:</strong>
+            1. Tap mic and speak OR type directly<br>
+            2. Edit text if needed<br>
+            3. Tap "Add Task" to send<br>
+            4. AI creates and schedules automatically<br><br>
+            
+            <strong>Replan Week:</strong>
+            • Tap "Replan My Week" anytime<br>
+            • AI reschedules all flexible tasks<br>
+            • Optimizes next 7 days
+        </div>
+    </div>
+
+    <script>
+        // IMPORTANT: Replace with your actual webhook URLs
+        const WEBHOOK_URL = 'https://alexanderpoppe.app.n8n.cloud/webhook/add-task';
+        const REPLAN_URL = 'https://alexanderpoppe.app.n8n.cloud/webhook/replan-week';
+        
+        const micBtn = document.getElementById('micBtn');
+        const transcriptTextarea = document.getElementById('transcript');
+        const statusDiv = document.getElementById('status');
+        const submitBtn = document.getElementById('submitBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const replanBtn = document.getElementById('replanBtn');
+        
+        let recognition = null;
+        let isListening = false;
+        
+        // Check browser support for speech recognition
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+            
+            recognition.onstart = () => {
+                isListening = true;
+                micBtn.classList.add('listening');
+                showStatus('🎤 Listening... Speak your task', 'info');
+            };
+            
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                
+                // Append to existing text if there's any, otherwise replace
+                if (transcriptTextarea.value.trim()) {
+                    transcriptTextarea.value += '\n' + transcript;
+                } else {
+                    transcriptTextarea.value = transcript;
+                }
+                
+                showStatus('✓ Captured! Edit if needed, then tap "Add Task"', 'success');
+            };
+            
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                showStatus('Error: ' + event.error + '. Please try again.', 'error');
+                stopListening();
+            };
+            
+            recognition.onend = () => {
+                stopListening();
+            };
+        } else {
+            micBtn.disabled = true;
+            showStatus('⚠️ Voice input not supported. You can still type!', 'info');
+        }
+        
+        // Microphone button click
+        micBtn.addEventListener('click', () => {
+            if (!recognition) return;
+            
+            if (isListening) {
+                recognition.stop();
+            } else {
+                try {
+                    recognition.start();
+                } catch (error) {
+                    console.error('Failed to start recognition:', error);
+                    showStatus('Error starting microphone. Please refresh and try again.', 'error');
+                }
+            }
+        });
+        
+        function stopListening() {
+            isListening = false;
+            micBtn.classList.remove('listening');
+        }
+        
+        // Clear button
+        clearBtn.addEventListener('click', () => {
+            transcriptTextarea.value = '';
+            statusDiv.style.display = 'none';
+            transcriptTextarea.focus();
+        });
+        
+        // Submit task button
+        submitBtn.addEventListener('click', async () => {
+            const taskText = transcriptTextarea.value.trim();
+            
+            if (!taskText) {
+                showStatus('⚠️ Please enter a task first', 'error');
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending...';
+            showStatus('📤 Sending to AI...', 'info');
+            
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        task_description: taskText
+                    })
+                });
+                
+                if (response.ok) {
+                    showStatus('✅ Task(s) created! AI is processing.', 'success');
+                    
+                    // Clear after success
+                    setTimeout(() => {
+                        transcriptTextarea.value = '';
+                        statusDiv.style.display = 'none';
+                    }, 2000);
+                } else {
+                    const errorText = await response.text();
+                    console.error('Server error:', errorText);
+                    showStatus('❌ Failed to create task. Please try again.', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('❌ Network error. Check your connection.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Add Task';
+            }
+        });
+        
+        // Replan week button
+        replanBtn.addEventListener('click', async () => {
+            const confirmed = confirm('Replan your entire week? This will reschedule all flexible tasks optimally.');
+            
+            if (!confirmed) return;
+            
+            replanBtn.disabled = true;
+            replanBtn.textContent = '⏳ Replanning...';
+            showStatus('🤖 AI is replanning your week...', 'info');
+            
+            try {
+                const response = await fetch(REPLAN_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    showStatus('✅ Week replanned! Check your Todoist.', 'success');
+                } else {
+                    const errorText = await response.text();
+                    console.error('Replan error:', errorText);
+                    showStatus('❌ Replan failed. Please try again.', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('❌ Network error. Check your connection.', 'error');
+            } finally {
+                replanBtn.disabled = false;
+                replanBtn.textContent = '🔄 Replan My Week';
+            }
+        });
+        
+        // Enable submit on Enter (Shift+Enter for new line)
+        transcriptTextarea.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                submitBtn.click();
+            }
+        });
+        
+        function showStatus(message, type) {
+            statusDiv.innerHTML = message;
+            statusDiv.className = 'status ' + type;
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+        
+        // Prevent zoom on double tap for iOS
+        document.addEventListener('touchend', (event) => {
+            const now = Date.now();
+            const lastTap = document.lastTap || 0;
+            const delta = now - lastTap;
+            
+            if (delta < 500) {
+                event.preventDefault();
+            }
+            
+            document.lastTap = now;
+        });
+    </script>
+</body>
+</html>
