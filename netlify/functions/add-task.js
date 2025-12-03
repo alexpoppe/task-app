@@ -12,7 +12,7 @@ exports.handler = async (event, context) => {
 
     // Get credentials from environment variables (set in Netlify dashboard)
     const username = "alexanderpoppe";
-    const password = process.env.N8N_USERNAME;
+    const password = process.env.N8N_PASSWORD;
 
     // Encode credentials for Basic Auth
     const credentials = Buffer.from(`${username}:${password}`).toString('base64');
