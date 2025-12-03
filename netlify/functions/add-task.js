@@ -22,7 +22,7 @@ exports.handler = async (event, context) => {
 
     try {
         // Forward request to n8n with authentication
-        const response = await fetch('https://alexanderpoppe.app.n8n.cloud/webhook-test/add-task', {
+        const response = await fetch('https://alexanderpoppe.app.n8n.cloud/webhook/add-task', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
