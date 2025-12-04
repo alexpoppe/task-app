@@ -6,7 +6,7 @@ exports.handler = async (event, context) => {
         };
     }
 
-    const username = process.env.N8N_USERNAME;
+    const username = "alexanderpoppe";
     const password = process.env.N8N_PASSWORD;
     const credentials = Buffer.from(`${username}:${password}`).toString('base64');
 
