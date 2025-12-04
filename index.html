@@ -300,6 +300,10 @@
                 <button id="replanBtn" class="replan-button">
                     🔄 Replan Week
                 </button>
+                
+                <button id="syncBtn" class="replan-button">
+                    🔄 Sync Calendar
+                </button>
 
                 <div id="status" class="status"></div>
             </div>
@@ -310,6 +314,7 @@
         const micBtn = document.getElementById('micBtn');
         const sendBtn = document.getElementById('sendBtn');
         const replanBtn = document.getElementById('replanBtn');
+        const syncBtn = document.getElementById('syncBtn');
         const transcriptBox = document.getElementById('transcriptBox');
         const statusDiv = document.getElementById('status');
 
@@ -410,7 +415,7 @@
                     },
                     body: JSON.stringify({})
                 });
-                
+
                 if (response.ok) {
                     showStatus('✓ Week replanned successfully', 'success');
                 } else {
@@ -421,6 +426,32 @@
             } finally {
                 replanBtn.disabled = false;
                 replanBtn.textContent = '🔄 Replan Week';
+            }
+        });
+
+        syncBtn.addEventListener('click', async () => {
+            syncBtn.disabled = true;
+            syncBtn.textContent = '⏳ Syncing...';
+
+            try {
+                const response = await fetch('/.netlify/functions/sync-calendar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({})
+                });
+                
+                if (response.ok) {
+                    showStatus('✔ Calendar synced successfully', 'success');
+                } else {
+                    showStatus('✗ Failed to sync calendar', 'error');
+                }
+            } catch (error) {
+                showStatus('✗ Network error', 'error');
+            } finally {
+                syncBtn.disabled = false;
+                syncBtn.textContent = '🔄 Sync Calendar';
             }
         });
 
