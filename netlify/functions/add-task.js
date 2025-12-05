@@ -39,18 +39,18 @@ exports.handler = async (event, context) => {
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*'
             },
-            body: JSON.stringify({ 
+            body: JSON.stringify({
                 success: response.ok,
-                data: data 
+                data: data
             })
         };
 
     } catch (error) {
         return {
             statusCode: 500,
-            body: JSON.stringify({ 
+            body: JSON.stringify({
                 error: 'Failed to contact n8n',
-                details: error.message 
+                details: error.message
             })
         };
     }

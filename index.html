@@ -294,15 +294,11 @@
 
             <div class="bottom-section">
                 <button id="sendBtn" class="send-button">
-                    🚀 Send
+                    🚀 Add Task
                 </button>
 
                 <button id="replanBtn" class="replan-button">
-                    🔄 Replan Week
-                </button>
-                
-                <button id="syncBtn" class="replan-button">
-                    🔄 Sync Calendar
+                    🔄 Plan Week
                 </button>
 
                 <div id="status" class="status"></div>
@@ -314,7 +310,6 @@
         const micBtn = document.getElementById('micBtn');
         const sendBtn = document.getElementById('sendBtn');
         const replanBtn = document.getElementById('replanBtn');
-        const syncBtn = document.getElementById('syncBtn');
         const transcriptBox = document.getElementById('transcriptBox');
         const statusDiv = document.getElementById('status');
 
@@ -399,13 +394,13 @@
                 showStatus('✗ Network error', 'error');
             } finally {
                 sendBtn.disabled = false;
-                sendBtn.textContent = '🚀 Send';
+                sendBtn.textContent = '🚀 Add Task';
             }
         });
 
         replanBtn.addEventListener('click', async () => {
             replanBtn.disabled = true;
-            replanBtn.textContent = '⏳ Replanning...';
+            replanBtn.textContent = '⏳ Planning...';
 
             try {
                 const response = await fetch('/.netlify/functions/replan-week', {
@@ -417,41 +412,15 @@
                 });
 
                 if (response.ok) {
-                    showStatus('✓ Week replanned successfully', 'success');
+                    showStatus('✓ Week planned successfully', 'success');
                 } else {
-                    showStatus('✗ Failed to replan week', 'error');
+                    showStatus('✗ Failed to plan week', 'error');
                 }
             } catch (error) {
                 showStatus('✗ Network error', 'error');
             } finally {
                 replanBtn.disabled = false;
-                replanBtn.textContent = '🔄 Replan Week';
-            }
-        });
-
-        syncBtn.addEventListener('click', async () => {
-            syncBtn.disabled = true;
-            syncBtn.textContent = '⏳ Syncing...';
-
-            try {
-                const response = await fetch('/.netlify/functions/sync-calendar', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({})
-                });
-                
-                if (response.ok) {
-                    showStatus('✔ Calendar synced successfully', 'success');
-                } else {
-                    showStatus('✗ Failed to sync calendar', 'error');
-                }
-            } catch (error) {
-                showStatus('✗ Network error', 'error');
-            } finally {
-                syncBtn.disabled = false;
-                syncBtn.textContent = '🔄 Sync Calendar';
+                replanBtn.textContent = '🔄 Plan Week';
             }
         });
 
