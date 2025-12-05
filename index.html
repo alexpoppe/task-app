@@ -306,61 +306,89 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.1';
+
         const micBtn = document.getElementById('micBtn');
         const sendBtn = document.getElementById('sendBtn');
         const replanBtn = document.getElementById('replanBtn');
         const transcriptBox = document.getElementById('transcriptBox');
         const statusDiv = document.getElementById('status');
 
-        let recognition = null;
+        let mediaRecorder = null;
+        let audioChunks = [];
         let isRecording = false;
+        let transcriber = null;
 
-        // Initialize speech recognition
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            recognition.lang = 'en-US';
-
-            recognition.onstart = () => {
-                isRecording = true;
-                micBtn.classList.add('recording');
-                showStatus('Listening...', 'info');
-            };
-
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                transcriptBox.value = transcript;
-                showStatus('✓ Captured', 'success');
-            };
-
-            recognition.onerror = (event) => {
-                showStatus('Error: ' + event.error, 'error');
-                resetRecording();
-            };
-
-            recognition.onend = () => {
-                resetRecording();
-            };
-        } else {
-            micBtn.disabled = true;
-            showStatus('Speech recognition not supported', 'error');
+        // Initialize Whisper model
+        async function initTranscriber() {
+            if (!transcriber) {
+                showStatus('Loading speech model (first time only)...', 'info');
+                transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny.en');
+                showStatus('✓ Ready to record', 'success');
+            }
+            return transcriber;
         }
 
-        function resetRecording() {
-            isRecording = false;
-            micBtn.classList.remove('recording');
+        // Start loading model immediately
+        initTranscriber();
+
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    await transcribeAudio(audioBlob);
+                    stream.getTracks().forEach(track => track.stop());
+                };
+
+                mediaRecorder.start();
+                isRecording = true;
+                micBtn.classList.add('recording');
+                showStatus('Recording...', 'info');
+            } catch (error) {
+                showStatus('Microphone access denied', 'error');
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                isRecording = false;
+                micBtn.classList.remove('recording');
+            }
+        }
+
+        async function transcribeAudio(audioBlob) {
+            try {
+                showStatus('Transcribing...', 'info');
+
+                const model = await initTranscriber();
+
+                // Convert blob to URL for proper audio processing
+                const url = URL.createObjectURL(audioBlob);
+                const result = await model(url);
+                URL.revokeObjectURL(url);
+
+                transcriptBox.value = result.text;
+                showStatus('✓ Transcription complete', 'success');
+            } catch (error) {
+                showStatus('Transcription failed: ' + error.message, 'error');
+            }
         }
 
         micBtn.addEventListener('click', () => {
-            if (!recognition) return;
-
             if (isRecording) {
-                recognition.stop();
+                stopRecording();
             } else {
-                recognition.start();
+                startRecording();
             }
         });
 
