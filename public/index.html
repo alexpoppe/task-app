@@ -467,10 +467,12 @@
 
                 if (!response.ok) {
                     showStatus('✗ Failed to plan week', 'error');
+                    replanBtn.disabled = false;
+                    replanBtn.textContent = '🔄 Plan Week';
                 }
+                // Keep processing state - SSE will clear it on success
             } catch (error) {
                 showStatus('✗ Network error', 'error');
-            } finally {
                 replanBtn.disabled = false;
                 replanBtn.textContent = '🔄 Plan Week';
             }
