@@ -328,7 +328,6 @@
             const data = JSON.parse(event.data);
             if (data.event === 'task-complete') {
                 isProcessing = false;
-                showStatus('✅ Complete!', 'success');
                 sendBtn.disabled = false;
                 sendBtn.textContent = '🚀 Add Task';
             }
@@ -423,7 +422,6 @@
             isProcessing = true;
             sendBtn.disabled = true;
             sendBtn.textContent = '⏳ Processing...';
-            showStatus('⏳ Processing...', 'info');
 
             try {
                 const response = await fetch('/api/add-task', {
@@ -464,9 +462,7 @@
                     body: JSON.stringify({})
                 });
 
-                if (response.ok) {
-                    showStatus('✓ Week planned successfully', 'success');
-                } else {
+                if (!response.ok) {
                     showStatus('✗ Failed to plan week', 'error');
                 }
             } catch (error) {
