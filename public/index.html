@@ -330,6 +330,9 @@
                 isProcessing = false;
                 sendBtn.disabled = false;
                 sendBtn.textContent = '🚀 Add Task';
+            } else if (data.event === 'plan-complete') {
+                replanBtn.disabled = false;
+                replanBtn.textContent = '🔄 Plan Week';
             }
         };
 
@@ -454,7 +457,7 @@
             replanBtn.textContent = '⏳ Planning...';
 
             try {
-                const response = await fetch('/.netlify/functions/replan-week', {
+                const response = await fetch('/api/replan-week', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

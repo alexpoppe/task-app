@@ -49,13 +49,35 @@ app.post('/api/add-task', async (req, res) => {
   }
 });
 
-// Task completion webhook
-app.post('/api/task-complete', (req, res) => {
-  const { taskId, status } = req.body;
+// Proxy to n8n replan-week with auth
+app.post('/api/replan-week', async (req, res) => {
+  const username = process.env.N8N_USERNAME;
+  const password = process.env.N8N_PASSWORD;
+  const credentials = Buffer.from(`${username}:${password}`).toString('base64');
 
-  // Broadcast to all connected clients
+  try {
+    const response = await fetch('https://alexanderpoppe.app.n8n.cloud/webhook/replan-week', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${credentials}`
+      },
+      body: JSON.stringify({})
+    });
+
+    const data = await response.text();
+    res.status(response.status).json({ success: response.ok, data });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Event completion webhook (handles both task and plan completion)
+app.post('/api/event-complete', (req, res) => {
+  const { event_type } = req.body;
+
   clients.forEach(client => {
-    client.write(`data: ${JSON.stringify({ event: 'task-complete', taskId, status })}\n\n`);
+    client.write(`data: ${JSON.stringify({ event: event_type })}\n\n`);
   });
 
   res.json({ success: true });
